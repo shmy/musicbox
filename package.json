@@ -1,0 +1,13 @@
+{
+  "name": "@shmy/musicbox",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "big-integer": "^1.6.26",
+    "he": "^1.1.1",
+    "request": "^2.83.0",
+    "request-promise-native": "^1.0.5",
+    "simple-netease-cloud-music": "^0.3.2"
+  }
+}

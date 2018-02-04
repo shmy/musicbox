@@ -3,6 +3,15 @@ const { decode } = require('he')
 const getUserAgent = require('../ua')
 
 module.exports = class QQ {
+  __getCdInfoUri(id) {
+    return `https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg?uin=0&format=json&inCharset=utf-8&outCharset=utf-8&notice=0&platform=h5&needNewCode=1&new_format=1&pic=500&disstid=${id}&type=1&json=1&utf8=1&onlysong=0&picmid=1&nosign=1&song_begin=0&song_num=0&_=${Date.now()}`
+  }
+  __getRecommendUri() {
+    return `https://c.y.qq.com/musichall/fcgi-bin/fcg_yqqhomepagerecommend.fcg?uin=0&format=json&inCharset=utf-8&outCharset=utf-8&notice=0&platform=h5&needNewCode=1&_=${Date.now()}`
+  }
+  __getHotKeyUri() {
+    return `https://c.y.qq.com/splcloud/fcgi-bin/gethotkey.fcg?uin=0&format=json&inCharset=utf-8&outCharset=utf-8&notice=0&platform=h5&needNewCode=1&_=${Date.now()}`
+  }
   __getDetailUri (id) {
     return `https://i.y.qq.com/v8/playsong.html?songmid=${id}&format=mp3&ADTAG=myqq&from=myqq`
   }
@@ -114,6 +123,80 @@ module.exports = class QQ {
           } catch (error) {
             return reject(new Error('获取QQ音乐链接失败'))
           }
+        })
+        .catch(reject)
+    })
+  }
+  hotKey() {
+    return new Promise((resolve, reject) => {
+      const options = {
+        method: 'GET',
+        uri: this.__getHotKeyUri(),
+        headers: {
+          referer: 'https://i.y.qq.com',
+          'User-Agent': getUserAgent()
+        },
+        json: true
+      }
+      request(options)
+        .then(data => {
+          if (data.code !== 0) {
+            return resolve([])
+          }
+          resolve(data.data.hotkey.map(i => i.k))
+        })
+        .catch(reject)
+    })
+  }
+  recommend() {
+    return new Promise((resolve, reject) => {
+      const options = {
+        method: 'GET',
+        uri: this.__getRecommendUri(),
+        headers: {
+          referer: 'https://i.y.qq.com',
+          'User-Agent': getUserAgent()
+        },
+        json: true
+      }
+      request(options)
+        .then(data => {
+          if (data.code !== 0) {
+            return resolve()
+          }
+          resolve(data.data)
+        })
+        .catch(reject)
+    })
+  }
+  cdInfo(id) {
+    return new Promise((resolve, reject) => {
+      const options = {
+        method: 'GET',
+        uri: this.__getCdInfoUri(id),
+        headers: {
+          referer: `https://y.qq.com/w/taoge.html?ADTAG=myqq&from=myqq&id=${id}`,
+          'User-Agent': getUserAgent()
+        },
+        json: true
+      }
+      request(options)
+        .then(data => {
+          if (data.code !== 0) {
+            return resolve()
+          }
+          const result = {}
+          const cd = data.cdlist[0]
+          result.dissname = cd.dissname
+          result.desc = cd.desc
+          result.logo = cd.logo
+          result.visitnum = cd.visitnum
+          result.songlist = cd.songlist.map(i => ({
+            id: i.mid,
+            songname: i.title || i.name,
+            singername: i.singer.map(d => d.title || d.name).join(',')
+          }))
+          resolve(result)
         })
         .catch(reject)
     })

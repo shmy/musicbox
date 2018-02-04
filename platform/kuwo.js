@@ -1,4 +1,5 @@
 const request = require('request-promise-native')
+const cheerio = require('cheerio')
 const getUserAgent = require('../ua')
 const { decode } = require('he')
 
@@ -17,6 +18,9 @@ module.exports = class KuWo {
     if (second < 10) { second = '0' + second }
     if (min < 10) { min = '0' + min }
     return time = hour ? (hour + ':' + newMin + ':' + second) : (min + ':' + second)
+  }
+  __getCdInfoUri(id) {
+    return `http://nplserver.kuwo.cn/pl.svc?op=getlistinfo&encode=utf-8&keyset=pl2012&identity=kuwo&vipver=1&pid=${id}&pn=0&rn=1000000&_=${Date.now()}`
   }
   __getLyric(id) {
     return new Promise((resolve, reject) => {
@@ -123,6 +127,90 @@ module.exports = class KuWo {
               resolve(Object.assign(result, data))
             })
             .catch(reject)
+        })
+        .catch(reject)
+    })
+  }
+  hotKey() {
+    return new Promise((resolve, reject) => {
+      const options = {
+        uri: 'http://mobile.kuwo.cn/mpage/html5/2015/action/hotword.jsp',
+        method: 'GET',
+        headers: {
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': getUserAgent()
+        },
+        json: true
+      }
+      request(options)
+        .then(data => {
+          resolve(data.map(i => i.name))
+        })
+        .catch(reject)
+    })
+  }
+  recommend() {
+    return new Promise((resolve, reject) => {
+      const options = {
+        uri: 'http://m.kuwo.cn/newh5/index/index',
+        method: 'GET',
+        headers: {
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': getUserAgent()
+        }
+      }
+      request(options)
+        .then(data => {
+          const $ = cheerio.load(data)
+          const result = []
+          $('.gedan .swiper-slide').each((index, el) => {
+            const item = {
+              id: $(el).find('a').attr('href').split('pid=')[1],
+              picUrl: $(el).find('a > img').attr('data-src'),
+              songListDesc: $(el).find('.gedantitle').text().trim(),
+              songListAuthor: '酷我'
+            }
+            result.push(item)
+          })
+
+          $('.program .swiper-slide').each((index, el) => {
+            const item = {
+              id: $(el).find('a').attr('href').split('pid=')[1],
+              picUrl: $(el).find('a > img').attr('data-src'),
+              songListDesc: $(el).find('.programtitle').text(),
+              songListAuthor: '酷我'
+            }
+            result.push(item)
+          })
+
+          resolve({ songList: result })
+        })
+        .catch(reject)
+    })
+  }
+  cdInfo(id) {
+    return new Promise((resolve, reject) => {
+      const options = {
+        method: 'GET',
+        uri: this.__getCdInfoUri(id),
+        headers: {
+          'User-Agent': getUserAgent()
+        },
+        json: true
+      }
+      request(options)
+        .then(data => {
+          const result = {}
+          result.dissname = data.title
+          result.desc = data.info
+          result.logo = data.pic
+          result.visitnum = data.playnum
+          result.songlist = data.musiclist.map(i => ({
+            id: i.id,
+            songname: i.name,
+            singername: i.artist
+          }))
+          resolve(result)
         })
         .catch(reject)
     })

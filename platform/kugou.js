@@ -1,4 +1,5 @@
 const request = require('request-promise-native')
+const cheerio = require('cheerio')
 const getUserAgent = require('../ua')
 
 module.exports = class KuGou {
@@ -97,6 +98,68 @@ module.exports = class KuGou {
               resolve(result)
             })
             .catch(reject)
+        })
+        .catch(reject)
+    })
+  }
+  recommend() {
+    return new Promise((resolve, reject) => {
+      const options = {
+        uri: 'http://m.kugou.com/plist/index',
+        method: 'GET',
+        headers: {
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': getUserAgent()
+        }
+      }
+      request(options)
+        .then(data => {
+          const $ = cheerio.load(data)
+          const result = []
+          $('#panelList>li').each((index, el) => {
+            const item = {
+              id: $(el).children().eq(0).attr('href').split('/list/')[1],
+              picUrl: $(el).find('.panel-img-left > img').attr('_src'),
+              songListDesc: $(el).find('.panel-img-content-first').text().trim(),
+              songListAuthor: '酷狗'
+            }
+            result.push(item)
+          })
+          resolve({ songList: result })
+        })
+        .catch(reject)
+    })
+  }
+  cdInfo(id) {
+    return new Promise((resolve, reject) => {
+      const options = {
+        method: 'GET',
+        uri: `http://m.kugou.com/plist/list/${id}`,
+        headers: {
+          'User-Agent': getUserAgent()
+        }
+      }
+      request(options)
+        .then(data => {
+          const $ = cheerio.load(data)
+          const result = {
+            songlist: []
+          }
+          result.dissname = $('.page-title').text().trim()
+          result.desc = $('#introBox').text().trim()
+          result.logo = $('#imgBoxInfo > img').attr('src')
+          result.visitnum = 0
+          $('.panel-songslist-item').each((index, el) => {
+            let text = $(el).find('.panel-songs-item-name').text().trim()
+            text = text.split('-')
+            const item = {
+              id: $(el).attr('id').split('_')[1],
+              songname: text[1].trim(),
+              singername: text[0].trim()
+            }
+            result.songlist.push(item)
+          })
+          resolve(result)
         })
         .catch(reject)
     })

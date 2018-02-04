@@ -5,14 +5,14 @@ const Encrypt = require('../crypto')
 const getUserAgent = require('../ua')
 
 module.exports = class Netease {
-  __getPlayPam (id) {
+  __getPlayPam(id) {
     return Encrypt({
       ids: [id],
       br: 999000,
       csrf_token: ''
     })
   }
-  __getSongUri (id) {
+  __getSongUri(id) {
     return new Promise((resolve, reject) => {
       const options = {
         uri: 'http://music.163.com/weapi/song/enhance/player/url',
@@ -34,7 +34,7 @@ module.exports = class Netease {
         .catch(reject)
     })
   }
-  search (keyword, page = 1, perPage = 20) {
+  search(keyword, page = 1, perPage = 20) {
     return new Promise((resolve, reject) => {
       nm.search(keyword, page, perPage)
         .then(data => {
@@ -59,7 +59,7 @@ module.exports = class Netease {
         .catch(reject)
     })
   }
-  song (id) {
+  song(id) {
     return new Promise((resolve, reject) => {
       Promise.all([
         nm.song(id),
@@ -75,7 +75,7 @@ module.exports = class Netease {
           }
           if (!info.songs[0].al.pic_str) {
             result.pic = ''
-            resolve(result)
+            return resolve(result)
           }
           nm.picture(info.songs[0].al.pic_str)
             .then(res => {
@@ -86,5 +86,60 @@ module.exports = class Netease {
         })
         .catch(reject)
     })
+  }
+  recommend() {
+    return new Promise((resolve, reject) => {
+      const options = {
+        uri: 'http://music.163.com/m/',
+        method: 'GET',
+        headers: {
+          // 'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': getUserAgent()
+        }
+      }
+      request(options)
+        .then(data => {
+          const reg = /window\.REDUX_STATE ?=([\S\s]*)\}\}\;/
+          let text = data.match(reg)
+          text = text[1] + '}}'
+          text = JSON.parse(text)
+          const result = []
+          text.HomeRecommend.data._list.forEach(list => {
+            if (Array.isArray(list)) {
+              list.forEach(item => {
+                const i = {
+                  id: item.id,
+                  picUrl: item.picUrl,
+                  songListDesc: item.name,
+                  songListAuthor: item.copywriter,
+                }
+                result.push(i)
+              })
+            }
+          })
+          resolve({ songList: result })
+        })
+        .catch(reject)
+    })
+  }
+  cdInfo(id) {
+    return new Promise((resolve, reject) => {
+      nm.playlist(id)
+        .then(({ playlist }) => {
+          const result = {}
+          result.dissname = playlist.name
+          result.desc = playlist.description
+          result.logo = playlist.coverImgUrl
+          result.visitnum = playlist.playCount
+          result.songlist = playlist.tracks.map(i => ({
+            id: i.id,
+            songname: i.name,
+            singername: i.ar.map(t => t.name).join(',')
+          }))
+          resolve(result)
+        })
+        .catch(reject)
+    })
+
   }
 }

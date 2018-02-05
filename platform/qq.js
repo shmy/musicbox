@@ -1,20 +1,7 @@
-const request = require('request-promise-native')
+const request = require('../http')
 const { decode } = require('he')
-const getUserAgent = require('../ua')
 
 module.exports = class QQ {
-  __getCdInfoUri(id) {
-    return `https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg?uin=0&format=json&inCharset=utf-8&outCharset=utf-8&notice=0&platform=h5&needNewCode=1&new_format=1&pic=500&disstid=${id}&type=1&json=1&utf8=1&onlysong=0&picmid=1&nosign=1&song_begin=0&song_num=0&_=${Date.now()}`
-  }
-  __getRecommendUri() {
-    return `https://c.y.qq.com/musichall/fcgi-bin/fcg_yqqhomepagerecommend.fcg?uin=0&format=json&inCharset=utf-8&outCharset=utf-8&notice=0&platform=h5&needNewCode=1&_=${Date.now()}`
-  }
-  __getHotKeyUri() {
-    return `https://c.y.qq.com/splcloud/fcgi-bin/gethotkey.fcg?uin=0&format=json&inCharset=utf-8&outCharset=utf-8&notice=0&platform=h5&needNewCode=1&_=${Date.now()}`
-  }
-  __getDetailUri (id) {
-    return `https://i.y.qq.com/v8/playsong.html?songmid=${id}&format=mp3&ADTAG=myqq&from=myqq`
-  }
   __getSearchPam (keyword, page, perPage) {
     return {
       format: 'json',
@@ -40,8 +27,7 @@ module.exports = class QQ {
           callback: 'j'
         },
         headers: {
-          referer: 'https://i.y.qq.com',
-          'User-Agent': getUserAgent()
+          referer: 'https://i.y.qq.com'
         }
       }
       request(options)
@@ -60,8 +46,7 @@ module.exports = class QQ {
         uri: 'https://c.y.qq.com/soso/fcgi-bin/search_for_qq_cp',
         qs: this.__getSearchPam(keyword, page, perPage),
         headers: {
-          referer: 'https://i.y.qq.com',
-          'User-Agent': getUserAgent()
+          referer: 'https://i.y.qq.com'
         },
         json: true
       }
@@ -91,10 +76,9 @@ module.exports = class QQ {
     return new Promise((resolve, reject) => {
       const options = {
         method: 'GET',
-        uri: this.__getDetailUri(id),
+        uri: `https://i.y.qq.com/v8/playsong.html?songmid=${id}&format=mp3&ADTAG=myqq&from=myqq`,
         headers: {
-          referer: 'https://i.y.qq.com',
-          'User-Agent': getUserAgent()
+          referer: 'https://i.y.qq.com'
         }
       }
       request(options)
@@ -131,10 +115,9 @@ module.exports = class QQ {
     return new Promise((resolve, reject) => {
       const options = {
         method: 'GET',
-        uri: this.__getHotKeyUri(),
+        uri: `https://c.y.qq.com/splcloud/fcgi-bin/gethotkey.fcg?uin=0&format=json&inCharset=utf-8&outCharset=utf-8&notice=0&platform=h5&needNewCode=1&_=${Date.now()}`,
         headers: {
-          referer: 'https://i.y.qq.com',
-          'User-Agent': getUserAgent()
+          referer: 'https://i.y.qq.com'
         },
         json: true
       }
@@ -152,10 +135,9 @@ module.exports = class QQ {
     return new Promise((resolve, reject) => {
       const options = {
         method: 'GET',
-        uri: this.__getRecommendUri(),
+        uri: `https://c.y.qq.com/musichall/fcgi-bin/fcg_yqqhomepagerecommend.fcg?uin=0&format=json&inCharset=utf-8&outCharset=utf-8&notice=0&platform=h5&needNewCode=1&_=${Date.now()}`,
         headers: {
-          referer: 'https://i.y.qq.com',
-          'User-Agent': getUserAgent()
+          referer: 'https://i.y.qq.com'
         },
         json: true
       }
@@ -173,10 +155,9 @@ module.exports = class QQ {
     return new Promise((resolve, reject) => {
       const options = {
         method: 'GET',
-        uri: this.__getCdInfoUri(id),
+        uri: `https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg?uin=0&format=json&inCharset=utf-8&outCharset=utf-8&notice=0&platform=h5&needNewCode=1&new_format=1&pic=500&disstid=${id}&type=1&json=1&utf8=1&onlysong=0&picmid=1&nosign=1&song_begin=0&song_num=0&_=${Date.now()}`,
         headers: {
-          referer: `https://y.qq.com/w/taoge.html?ADTAG=myqq&from=myqq&id=${id}`,
-          'User-Agent': getUserAgent()
+          referer: `https://y.qq.com/w/taoge.html?ADTAG=myqq&from=myqq&id=${id}`
         },
         json: true
       }

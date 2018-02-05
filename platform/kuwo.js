@@ -1,6 +1,5 @@
-const request = require('request-promise-native')
+const request = require('../http')
 const cheerio = require('cheerio')
-const getUserAgent = require('../ua')
 const { decode } = require('he')
 
 module.exports = class KuWo {
@@ -19,9 +18,7 @@ module.exports = class KuWo {
     if (min < 10) { min = '0' + min }
     return time = hour ? (hour + ':' + newMin + ':' + second) : (min + ':' + second)
   }
-  __getCdInfoUri(id) {
-    return `http://nplserver.kuwo.cn/pl.svc?op=getlistinfo&encode=utf-8&keyset=pl2012&identity=kuwo&vipver=1&pid=${id}&pn=0&rn=1000000&_=${Date.now()}`
-  }
+
   __getLyric(id) {
     return new Promise((resolve, reject) => {
       const options = {
@@ -29,9 +26,6 @@ module.exports = class KuWo {
         uri: 'http://m.kuwo.cn/newh5/singles/songinfoandlrc',
         qs: {
           musicId: id
-        },
-        headers: {
-          'User-Agent': getUserAgent()
         },
         json: true
       }
@@ -49,9 +43,6 @@ module.exports = class KuWo {
         })
         .catch(reject)
     })
-  }
-  __getPlayUri(id) {
-    return `http://mobile.kuwo.cn/mpage/html5/getsongurl?mid=${id}&format=mp3`
   }
   __getSearchPam(keyword, page, perPage) {
     return {
@@ -72,10 +63,6 @@ module.exports = class KuWo {
         method: 'GET',
         uri: 'http://search.kuwo.cn/r.s',
         qs: this.__getSearchPam(keyword, page, perPage),
-        headers: {
-          // 'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': getUserAgent()
-        },
         json: true
       }
       request(options)
@@ -106,12 +93,8 @@ module.exports = class KuWo {
   song(id) {
     return new Promise((resolve, reject) => {
       const options = {
-        uri: this.__getPlayUri(id),
+        uri: `http://mobile.kuwo.cn/mpage/html5/getsongurl?mid=${id}&format=mp3`,
         method: 'GET',
-        headers: {
-          // 'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': getUserAgent()
-        },
         json: true
       }
       request(options)
@@ -136,10 +119,6 @@ module.exports = class KuWo {
       const options = {
         uri: 'http://mobile.kuwo.cn/mpage/html5/2015/action/hotword.jsp',
         method: 'GET',
-        headers: {
-          // 'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': getUserAgent()
-        },
         json: true
       }
       request(options)
@@ -153,11 +132,7 @@ module.exports = class KuWo {
     return new Promise((resolve, reject) => {
       const options = {
         uri: 'http://m.kuwo.cn/newh5/index/index',
-        method: 'GET',
-        headers: {
-          // 'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': getUserAgent()
-        }
+        method: 'GET'
       }
       request(options)
         .then(data => {
@@ -192,10 +167,7 @@ module.exports = class KuWo {
     return new Promise((resolve, reject) => {
       const options = {
         method: 'GET',
-        uri: this.__getCdInfoUri(id),
-        headers: {
-          'User-Agent': getUserAgent()
-        },
+        uri: `http://nplserver.kuwo.cn/pl.svc?op=getlistinfo&encode=utf-8&keyset=pl2012&identity=kuwo&vipver=1&pid=${id}&pn=0&rn=1000000&_=${Date.now()}`,
         json: true
       }
       request(options)

@@ -1,11 +1,7 @@
-const request = require('request-promise-native')
+const request = require('../http')
 const cheerio = require('cheerio')
-const getUserAgent = require('../ua')
 
 module.exports = class KuGou {
-  __getPlayUri (hash) {
-    return `http://m.kugou.com/app/i/getSongInfo.php?cmd=playInfo&hash=${hash}`
-  }
   __getLyric (id) {
     return new Promise((resolve, reject) => {
       const options = {
@@ -15,9 +11,6 @@ module.exports = class KuGou {
           cmd: 100,
           hash: id,
           timelength: 1
-        },
-        headers: {
-          'User-Agent': getUserAgent()
         }
       }
       request(options)
@@ -42,10 +35,6 @@ module.exports = class KuGou {
         method: 'GET',
         uri: 'http://mobilecdn.kugou.com/api/v3/search/song',
         qs: this.__getSearchPam(keyword, page, perPage),
-        headers: {
-          // 'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': getUserAgent()
-        },
         json: true
       }
       request(options)
@@ -73,12 +62,8 @@ module.exports = class KuGou {
   song (id) {
     return new Promise((resolve, reject) => {
       const options = {
-        uri: this.__getPlayUri(id),
+        uri: `http://m.kugou.com/app/i/getSongInfo.php?cmd=playInfo&hash=${id}`,
         method: 'GET',
-        headers: {
-          // 'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': getUserAgent()
-        },
         json: true
       }
       request(options)
@@ -106,11 +91,7 @@ module.exports = class KuGou {
     return new Promise((resolve, reject) => {
       const options = {
         uri: 'http://m.kugou.com/plist/index',
-        method: 'GET',
-        headers: {
-          // 'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': getUserAgent()
-        }
+        method: 'GET'
       }
       request(options)
         .then(data => {
@@ -134,10 +115,7 @@ module.exports = class KuGou {
     return new Promise((resolve, reject) => {
       const options = {
         method: 'GET',
-        uri: `http://m.kugou.com/plist/list/${id}`,
-        headers: {
-          'User-Agent': getUserAgent()
-        }
+        uri: `http://m.kugou.com/plist/list/${id}`
       }
       request(options)
         .then(data => {

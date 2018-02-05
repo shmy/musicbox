@@ -1,8 +1,7 @@
 const NeteaseMusic = require('simple-netease-cloud-music')
 const nm = new NeteaseMusic()
-const request = require('request-promise-native')
+const request = require('../http')
 const Encrypt = require('../crypto')
-const getUserAgent = require('../ua')
 
 module.exports = class Netease {
   __getPlayPam(id) {
@@ -19,8 +18,7 @@ module.exports = class Netease {
         method: 'POST',
         form: this.__getPlayPam(id),
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': getUserAgent()
+          'Content-Type': 'application/x-www-form-urlencoded'
         },
         json: true
       }
@@ -91,11 +89,7 @@ module.exports = class Netease {
     return new Promise((resolve, reject) => {
       const options = {
         uri: 'http://music.163.com/m/',
-        method: 'GET',
-        headers: {
-          // 'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': getUserAgent()
-        }
+        method: 'GET'
       }
       request(options)
         .then(data => {

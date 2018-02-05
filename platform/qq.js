@@ -2,7 +2,7 @@ const request = require('../http')
 const { decode } = require('he')
 
 module.exports = class QQ {
-  __getSearchPam (keyword, page, perPage) {
+  __getSearchPam(keyword, page, perPage) {
     return {
       format: 'json',
       inCharset: 'utf-8',
@@ -15,7 +15,7 @@ module.exports = class QQ {
       _: Date.now()
     }
   }
-  __getLyric (id) {
+  __getLyric(id) {
     return new Promise((resolve, reject) => {
       const options = {
         method: 'GET',
@@ -39,7 +39,7 @@ module.exports = class QQ {
         .catch(reject)
     })
   }
-  search (keyword, page = 1, perPage = 20) {
+  search(keyword, page = 1, perPage = 20) {
     return new Promise((resolve, reject) => {
       const options = {
         method: 'GET',
@@ -72,7 +72,7 @@ module.exports = class QQ {
         .catch(reject)
     })
   }
-  song (id) {
+  song(id) {
     return new Promise((resolve, reject) => {
       const options = {
         method: 'GET',
@@ -92,21 +92,21 @@ module.exports = class QQ {
           text = text[1] + '}]'
           try {
             text = JSON.parse(text)[0]
-            const result = {
-              url: text.m4aUrl,
-              pic: 'http:' + text.pic,
-              songname: text.songname,
-              singername: text.singername
-            }
-            this.__getLyric(text.songid)
-              .then(lrc => {
-                result.lrc = lrc
-                resolve(result)
-              })
-              .catch(reject)
           } catch (error) {
             return reject(new Error('获取QQ音乐链接失败'))
           }
+          const result = {
+            url: text.m4aUrl,
+            pic: 'http:' + text.pic,
+            songname: text.songname,
+            singername: text.singername
+          }
+          this.__getLyric(text.songid)
+            .then(lrc => {
+              result.lrc = lrc
+              resolve(result)
+            })
+            .catch(reject)
         })
         .catch(reject)
     })
